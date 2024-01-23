@@ -1,6 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -11,8 +12,11 @@ export class AuthController {
     return this.authService.login(loginDto.userName, loginDto.password);
   }
 
+  @UseGuards(AuthGuard)
   @Post('logout')
-  logout() {
-    return this.authService.logout();
+  logout(@Headers() headers) {
+    return this.authService.logout(
+      AuthGuard.extractTokenFromHeader(headers.authorization),
+    );
   }
 }

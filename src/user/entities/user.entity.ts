@@ -8,7 +8,8 @@ export class User {
   @Column()
   userName: string;
 
-  @Column()
+  // 查表时不读取password字段，若需要查询，可通过select属性显性设置
+  @Column({ select: false })
   password: string;
 
   @Column()

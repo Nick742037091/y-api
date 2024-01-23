@@ -30,16 +30,7 @@ export class UserService {
   }
 
   async findAll() {
-    return await this.userRepository.find({
-      select: [
-        'id',
-        'userName',
-        'fullName',
-        'avatar',
-        'followingNum',
-        'followerNum',
-      ],
-    });
+    return await this.userRepository.find();
   }
 
   findOne(id: number) {
@@ -47,7 +38,20 @@ export class UserService {
   }
 
   findOneByName(name: string) {
-    return this.userRepository.findOneBy({ userName: name });
+    return this.userRepository.findOne({
+      select: [
+        'id',
+        'userName',
+        'fullName',
+        'password',
+        'avatar',
+        'followingNum',
+        'followerNum',
+      ],
+      where: {
+        userName: name,
+      },
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

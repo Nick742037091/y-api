@@ -11,7 +11,10 @@ import { jwtConstants } from './constants';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '7d' },
+      signOptions: {
+        // 过期时间通过redis控制
+        // expiresIn: '7d'
+      },
     }),
   ],
   controllers: [AuthController],
