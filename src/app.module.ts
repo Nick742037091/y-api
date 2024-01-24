@@ -4,18 +4,28 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './db/redis/redis.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import envConfig from './config/envConfig';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '12345678',
-      database: 'y',
-      synchronize: false,
-      autoLoadEntities: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [envConfig.path],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('MYSQL_HOST'),
+        port: configService.get('MYSQL_PORT'),
+        username: configService.get('MYSQL_USERNAME'),
+        password: configService.get('MYSQL_PASSWORD'),
+        database: 'y',
+        synchronize: false,
+        autoLoadEntities: true,
+      }),
     }),
     UserModule,
     AuthModule,

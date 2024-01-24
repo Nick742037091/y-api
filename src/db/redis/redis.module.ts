@@ -3,20 +3,22 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import type { RedisClientOptions } from 'redis';
 import { RedisService } from './redis.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 @Global() // 这里我们使用@Global 装饰器让这个模块变成全局的
 @Module({
   imports: [
     CacheModule.registerAsync<RedisClientOptions>({
-      useFactory: async () => {
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
         const store = await redisStore({
           socket: {
-            host: '127.0.0.1',
-            port: 6379,
+            host: configService.get('REDIS_HOST'),
+            port: configService.get('REDIS_PORT'),
           },
-          // 2天失效
-          ttl: 1000 * 60 * 60 * 24 * 2,
+          ttl: configService.get('REDIS_DEFAULT_TTL'),
           database: 0,
-          password: '',
+          password: configService.get('REDIS_PASSWORD'),
         });
         return {
           store,
