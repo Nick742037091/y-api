@@ -3,9 +3,9 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './db/redis/redis.module';
+import { RedisModule } from './utils/db/redis/redis.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import envConfig from './config/envConfig';
+import envConfig from './utils/config/envConfig';
 
 @Module({
   imports: [

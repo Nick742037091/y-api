@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { compareSync } from 'bcrypt';
-import { RedisService } from 'src/db/redis/redis.service';
+import { RedisService } from 'src/utils/db/redis/redis.service';
 import { jwtConstants } from './constants';
+import { fail } from 'src/utils';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
   async login(userName: string, password: string) {
     const user = await this.usersService.findOneByName(userName);
     if (!compareSync(password, user?.password)) {
-      throw new UnauthorizedException();
+      return fail({ msg: '账号或密码错误' });
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: pwd, ...rest } = user;

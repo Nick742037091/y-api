@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
-import { RedisService } from 'src/db/redis/redis.service';
+import { RedisService } from 'src/utils/db/redis/redis.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -21,21 +21,22 @@ export class AuthGuard implements CanActivate {
       request.headers.authorization,
     );
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('缺少token');
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: jwtConstants.secret,
       });
       const cacheToken = await this.redisService.get(`token_${payload.sub}`);
-      if (!cacheToken) throw new UnauthorizedException();
-      if (cacheToken !== token) throw new UnauthorizedException();
+      if (!cacheToken) throw new UnauthorizedException('token校验失败');
+      if (cacheToken !== token)
+        throw new UnauthorizedException('token校验失败');
 
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['user'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('token校验失败');
     }
     return true;
   }
