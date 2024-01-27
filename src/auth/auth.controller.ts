@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Headers,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from './auth.guard';
@@ -16,6 +23,14 @@ export class AuthController {
   @Post('logout')
   logout(@Headers() headers) {
     return this.authService.logout(
+      AuthGuard.extractTokenFromHeader(headers.authorization),
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('getUserInfo')
+  getUserInfo(@Headers() headers) {
+    return this.authService.getUserInfo(
       AuthGuard.extractTokenFromHeader(headers.authorization),
     );
   }

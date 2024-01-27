@@ -49,4 +49,12 @@ export class AuthService {
     await this.redisService.set(`token_${payload.sub}`, '', 1);
     return null;
   }
+
+  async getUserInfo(token: string) {
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: jwtConstants.secret,
+    });
+    const user = await this.usersService.findOne(payload.sub);
+    return user;
+  }
 }
