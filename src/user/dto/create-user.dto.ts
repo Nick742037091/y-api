@@ -5,10 +5,4 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   password: string;
-
-  // @IsNotEmpty()
-  fullName: string;
-
-  @IsNotEmpty()
-  avatar: string;
 }

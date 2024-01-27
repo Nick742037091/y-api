@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,17 +6,22 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { hashSync } from 'bcrypt';
 import { fail } from 'src/utils';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
+    // 解决与AuthService的循环依赖问题
+    @Inject(forwardRef(() => AuthService))
+    private authService: AuthService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const userName = createUserDto.userName;
     const isExist = await this.userRepository.findOneBy({
-      userName: createUserDto.userName,
+      userName: userName,
     });
     if (isExist) {
       return {
@@ -26,7 +31,18 @@ export class UserService {
     }
     createUserDto.password = await hashSync(createUserDto.password, 10);
     const result = await this.userRepository.insert(createUserDto);
-    return result.identifiers[0];
+    const createInfo = result.generatedMaps[0];
+    const token = await this.authService.createTokenAndPersist(
+      createInfo.id,
+      userName,
+    );
+    return {
+      token,
+      userInfo: {
+        userName,
+        ...createInfo,
+      },
+    };
   }
 
   async findAll() {

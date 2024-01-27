@@ -12,10 +12,10 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column()
+  @Column({ default: '' })
   fullName: string;
 
-  @Column()
+  @Column({ default: '' })
   avatar: string;
 
   @Column({ default: 0 })

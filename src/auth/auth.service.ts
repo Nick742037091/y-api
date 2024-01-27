@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compareSync } from 'bcrypt';
 import { RedisService } from 'src/utils/db/redis/redis.service';
 import { jwtConstants } from './constants';
 import { fail } from 'src/utils';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject(forwardRef(() => UserService))
     private usersService: UserService,
     private jwtService: JwtService,
     private redisService: RedisService,
@@ -21,19 +22,23 @@ export class AuthService {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: pwd, ...rest } = user;
-    const payload = { sub: user.id, username: user.userName };
+    const token = await this.createTokenAndPersist(user.id, userName);
+    return {
+      token,
+      userInfo: rest,
+    };
+  }
+
+  async createTokenAndPersist(id: number, userName: string) {
+    const payload = { sub: id, username: userName };
     const token = await this.jwtService.signAsync(payload);
     await this.redisService.set(
-      `token_${user.id}`,
+      `token_${id}`,
       token,
       // 2天失效
       1000 * 60 * 60 * 24 * 2,
     );
-
-    return {
-      token,
-      ...rest,
-    };
+    return token;
   }
 
   async logout(token: string) {
