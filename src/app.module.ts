@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './utils/db/redis/redis.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PostModule } from './post/post.module';
 import envConfig from './utils/config/envConfig';
 
 @Module({
@@ -30,6 +31,7 @@ import envConfig from './utils/config/envConfig';
     UserModule,
     AuthModule,
     RedisModule,
+    PostModule,
   ],
   controllers: [],
   providers: [],
