@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './utils/db/redis/redis.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PostModule } from './post/post.module';
+import { UploadModule } from './upload/upload.module';
 import envConfig from './utils/config/envConfig';
 
 @Module({
@@ -32,6 +33,7 @@ import envConfig from './utils/config/envConfig';
     AuthModule,
     RedisModule,
     PostModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],
