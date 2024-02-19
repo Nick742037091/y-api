@@ -33,6 +33,10 @@ export class PostService {
           userName: user.userName,
           fullName: user.fullName,
           avatar: user.avatar,
+          commentNum: 0,
+          shareNum: 0,
+          favoriteNum: 0,
+          viewNum: 0,
         };
       });
     };
@@ -44,27 +48,6 @@ export class PostService {
         user: true,
       },
     });
-    // const list = await this.postRepository
-    //   .createQueryBuilder('post')
-    //   .take(pageSize)
-    //   .skip(pageSize * (pageNum - 1))
-    //   .leftJoinAndSelect(User, 'user', 'post.createUserId = user.id')
-    //   .select([
-    //     'post.id as id',
-    //     'post.createTime as createTime',
-    //     'post.content as content',
-    //     'post.imgList as imgList',
-    //     'post.video as video',
-    //     'post.videoPoster as videoPoster',
-    //     'post.gifVideo as gifVideo',
-    //     'post.gifPoster as gifPoster',
-    //     'post.gifWidth as gifWidth',
-    //     'post.gifHeight as gifHeight',
-    //     'user.userName as userName',
-    //     'user.fullName as fullName',
-    //     'user.avatar as avatar',
-    //   ])
-    //   .getRawMany();
     return {
       total,
       list: dealList(list),
