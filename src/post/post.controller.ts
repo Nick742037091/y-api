@@ -30,7 +30,7 @@ export class PostController {
     @Query('pageSize') pageSize: number,
     @Query('pageNum') pageNum: number,
   ) {
-    return this.postService.findAll(pageSize, pageNum);
+    return this.postService.findAll(pageSize || 10, pageNum || 1);
   }
 
   @Get(':id')

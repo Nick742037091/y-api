@@ -1,8 +1,11 @@
+import { User } from 'src/user/entities/user.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 
 // 主要定义类型，不需要非空，默认值信息
@@ -42,4 +45,8 @@ export class Post {
 
   @Column({ name: 'gif_height' })
   gifHeight: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'create_user_id' })
+  user: User;
 }
