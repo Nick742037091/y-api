@@ -17,6 +17,9 @@ export class AuthService {
 
   async login(userName: string, password: string) {
     const user = await this.usersService.findOneByName(userName);
+    if (!user) {
+      return fail({ msg: '账号不存在' });
+    }
     if (!compareSync(password, user?.password)) {
       return fail({ msg: '账号或密码错误' });
     }

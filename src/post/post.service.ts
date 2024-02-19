@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,11 +23,27 @@ export class PostService {
   }
 
   async findAll(pageSize: number, pageNum: number) {
-    if (!pageSize || !pageNum) return await this.postRepository.find();
-    return await this.postRepository.find({
+    const dealList = (post: Post[]) => {
+      return post.map((item) => {
+        return {
+          ...item,
+          imgList: item.imgList ? item.imgList.split(',') : [],
+        };
+      });
+    };
+    if (!pageSize || !pageNum) {
+      const list = await this.postRepository.find();
+      return dealList(list);
+    }
+    const total = await this.postRepository.count();
+    const list = await this.postRepository.find({
       take: pageSize,
       skip: pageSize * (pageNum - 1),
     });
+    return {
+      total,
+      list: dealList(list),
+    };
   }
 
   async findOne(id: number) {
