@@ -5,13 +5,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { fail, success } from 'src/utils';
-import { User } from 'src/user/entities/user.entity';
+import { PostLike } from './entities/postLike.entity';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
+
+    @InjectRepository(PostLike)
+    private postLikeRepository: Repository<PostLike>,
   ) {}
 
   async create(createPostDto: CreatePostDto, userId: number) {
@@ -23,19 +26,22 @@ export class PostService {
     return await this.postRepository.find({ where: { id: result.id } });
   }
 
-  async findAll(pageSize: number, pageNum: number) {
+  async findAll(pageSize: number, pageNum: number, userId: number) {
     const dealList = (post: Post[]) => {
       return post.map((item) => {
-        const { user, ...rest } = item;
+        const { user, postLikes, ...rest } = item;
+        const likedList = postLikes.filter((item) => item.liked);
+        const isLiked = !!likedList.find((item) => item.userId === userId);
         return {
           ...rest,
           imgList: item.imgList ? item.imgList.split(',') : [],
           userName: user.userName,
           fullName: user.fullName,
           avatar: user.avatar,
+          isLiked,
           commentNum: 0,
           shareNum: 0,
-          favoriteNum: 0,
+          likeNum: likedList.length,
           viewNum: 0,
         };
       });
@@ -46,6 +52,7 @@ export class PostService {
       skip: pageSize * (pageNum - 1),
       relations: {
         user: true,
+        postLikes: true,
       },
     });
     return {
@@ -72,5 +79,25 @@ export class PostService {
       return fail({ msg: '帖子不存在' });
     }
     await this.postRepository.delete(id);
+  }
+
+  async like(postId: number, userId: number, status: boolean = true) {
+    const record = await this.postLikeRepository.findOne({
+      where: {
+        postId,
+        userId,
+      },
+    });
+    if (record) {
+      record.liked = status;
+      await this.postLikeRepository.save(record);
+    } else {
+      await this.postLikeRepository.save({
+        postId,
+        userId,
+        liked: status,
+      });
+    }
+    return success();
   }
 }

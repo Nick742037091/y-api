@@ -25,14 +25,17 @@ export class PostController {
     return this.postService.create(createPostDto, req.userId);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   findAll(
     @Query('pageSize') pageSize: number,
     @Query('pageNum') pageNum: number,
+    @Request() req,
   ) {
-    return this.postService.findAll(pageSize || 10, pageNum || 1);
+    return this.postService.findAll(pageSize || 10, pageNum || 1, req.userId);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postService.findOne(+id);
@@ -48,5 +51,15 @@ export class PostController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.postService.remove(+id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('like')
+  like(
+    @Body('postId') postId: number,
+    @Body('status') status: boolean,
+    @Request() req,
+  ) {
+    return this.postService.like(postId, req.userId, status);
   }
 }

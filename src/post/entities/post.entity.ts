@@ -1,4 +1,5 @@
 import { User } from 'src/user/entities/user.entity';
+import { PostLike } from './postLike.entity';
 import {
   Entity,
   Column,
@@ -6,6 +7,7 @@ import {
   CreateDateColumn,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 // 主要定义类型，不需要非空，默认值信息
@@ -20,7 +22,7 @@ export class Post {
   // 表字段需要设置默认值为CURRENT_TIMESTAMP
   // `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
   @CreateDateColumn({ name: 'create_time', type: 'datetime' })
-  createTime: string;
+  createTime: Date;
 
   @Column({ type: 'text' })
   content: string;
@@ -49,4 +51,7 @@ export class Post {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'create_user_id' })
   user: User;
+
+  @OneToMany(() => PostLike, (postLike) => postLike.post)
+  postLikes: PostLike[];
 }
