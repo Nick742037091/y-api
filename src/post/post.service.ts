@@ -6,6 +6,7 @@ import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { fail, success } from 'src/utils';
 import { PostLike } from './entities/postLike.entity';
+import { PostView } from './entities/postView.entity';
 
 @Injectable()
 export class PostService {
@@ -15,6 +16,9 @@ export class PostService {
 
     @InjectRepository(PostLike)
     private postLikeRepository: Repository<PostLike>,
+
+    @InjectRepository(PostView)
+    private postViewRepository: Repository<PostView>,
   ) {}
 
   async create(createPostDto: CreatePostDto, userId: number) {
@@ -27,42 +31,59 @@ export class PostService {
   }
 
   async findAll(pageSize: number, pageNum: number, userId: number) {
-    const dealList = (post: Post[]) => {
-      return post.map((item) => {
-        const { user, postLikes, ...rest } = item;
-        const likedList = postLikes.filter((item) => item.liked);
-        const isLiked = !!likedList.find((item) => item.userId === userId);
-        return {
-          ...rest,
-          imgList: item.imgList ? item.imgList.split(',') : [],
-          userName: user.userName,
-          fullName: user.fullName,
-          avatar: user.avatar,
-          isLiked,
-          commentNum: 0,
-          shareNum: 0,
-          likeNum: likedList.length,
-          viewNum: 0,
-        };
-      });
-    };
     const total = await this.postRepository.count();
-    const list = await this.postRepository.find({
+    const posts = await this.postRepository.find({
       take: pageSize,
       skip: pageSize * (pageNum - 1),
       relations: {
         user: true,
         postLikes: true,
+        postViews: true,
       },
+    });
+    const list = posts.map((item) => {
+      const { user, postLikes, postViews, ...rest } = item;
+      const likedList = postLikes.filter((item) => item.liked);
+      const isLiked = !!likedList.find((item) => item.userId === userId);
+      return {
+        ...rest,
+        imgList: item.imgList ? item.imgList.split(',') : [],
+        userName: user.userName,
+        fullName: user.fullName,
+        avatar: user.avatar,
+        isLiked,
+        commentNum: 0,
+        shareNum: 0,
+        likeNum: likedList.length,
+        viewNum: postViews.length,
+      };
     });
     return {
       total,
-      list: dealList(list),
+      list,
     };
   }
 
-  async findOne(id: number) {
-    return await this.postRepository.findOne({ where: { id } });
+  async findOne(id: number, userId: number) {
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: { user: true, postLikes: true, postViews: true },
+    });
+    const { user, postLikes, postViews, imgList, ...rest } = post;
+    const likedList = postLikes.filter((item) => item.liked);
+    const isLiked = !!likedList.find((item) => item.userId === userId);
+    return {
+      ...rest,
+      imgList: imgList ? imgList.split(',') : [],
+      userName: user.userName,
+      fullName: user.fullName,
+      avatar: user.avatar,
+      isLiked,
+      commentNum: 0,
+      shareNum: 0,
+      likeNum: likedList.length,
+      viewNum: postViews.length,
+    };
   }
 
   async update(id: number, updatePostDto: UpdatePostDto) {
@@ -98,6 +119,14 @@ export class PostService {
         liked: status,
       });
     }
+    return success();
+  }
+
+  async view(postId: number, userId: number) {
+    await this.postViewRepository.save({
+      postId,
+      userId,
+    });
     return success();
   }
 }

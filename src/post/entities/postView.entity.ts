@@ -3,14 +3,13 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { Post } from './post.entity';
 
 @Entity()
-export class PostLike {
+export class PostView {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -20,17 +19,10 @@ export class PostLike {
   @Column({ name: 'user_id' })
   userId: number;
 
-  @Column()
-  liked: boolean;
-
   @CreateDateColumn({ name: 'create_time', type: 'datetime' })
   createTime: Date;
 
-  @UpdateDateColumn({ name: 'update_time', type: 'datetime' })
-  updateTime: Date;
-
   @ManyToOne(() => Post)
-  // 指定name即可，referencedColumnName默认为id
   @JoinColumn({ name: 'post_id' })
   post: Post;
 }

@@ -37,8 +37,8 @@ export class PostController {
 
   @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.postService.findOne(+id, req.userId);
   }
 
   @UseGuards(AuthGuard)
@@ -61,5 +61,11 @@ export class PostController {
     @Request() req,
   ) {
     return this.postService.like(postId, req.userId, status);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('view')
+  view(@Body('postId') postId: number, @Request() req) {
+    return this.postService.view(postId, req.userId);
   }
 }

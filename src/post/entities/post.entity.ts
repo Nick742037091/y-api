@@ -9,6 +9,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
+import { PostView } from './postView.entity';
 
 // 主要定义类型，不需要非空，默认值信息
 @Entity()
@@ -53,5 +54,10 @@ export class Post {
   user: User;
 
   @OneToMany(() => PostLike, (postLike) => postLike.post)
+  // 外键由@ManyToOne字段指定
   postLikes: PostLike[];
+
+  @OneToMany(() => PostView, (postView) => postView.post)
+  // 外键由@ManyToOne字段指定
+  postViews: PostView[];
 }
