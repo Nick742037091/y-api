@@ -26,7 +26,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @Get()
+  @Get('list')
   findAll(
     @Query('pageSize') pageSize: number,
     @Query('pageNum') pageNum: number,
@@ -35,6 +35,7 @@ export class PostController {
     return this.postService.findAll(pageSize || 10, pageNum || 1, req.userId);
   }
 
+  // 接口从上到下进行匹配，因此要放在list接口下面，否则会覆盖list接口
   @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Request() req) {
