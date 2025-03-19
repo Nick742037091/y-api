@@ -35,6 +35,12 @@ export class PostController {
     return this.postService.findAll(pageSize || 10, pageNum || 1, req.userId);
   }
 
+  @UseGuards(AuthGuard)
+  @Get('getNewPosterList')
+  getNewPosterList() {
+    return [];
+  }
+
   // 接口从上到下进行匹配，因此要放在list接口下面，否则会覆盖list接口
   @UseGuards(AuthGuard)
   @Get(':id')
