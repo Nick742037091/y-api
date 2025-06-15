@@ -58,6 +58,7 @@ export class AuthService {
       secret: jwtConstants.secret,
     });
     const user = await this.usersService.findOne(payload.sub);
-    return user;
+    const { password: pwd, ...rest } = user;
+    return rest;
   }
 }

@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model post {
+  id           Int        @id @default(autoincrement())
+  createUserId Int        @map("create_user_id")
+  createTime   DateTime   @default(now()) @map("create_time") @db.DateTime(0)
+  content      String     @db.Text
+  imgList      String?    @map("img_list") @db.Text
+  video        String?    @db.VarChar(500)
+  videoPoster  String?    @map("video_poster") @db.VarChar(500)
+  gifVideo     String?    @map("gif_video") @db.VarChar(500)
+  gifPoster    String?    @map("gif_poster") @db.VarChar(500)
+  gifWidth     Int?       @default(0) @map("gif_width") @db.SmallInt
+  gifHeight    Int?       @default(0) @map("gif_height") @db.SmallInt
+  user         user       @relation(fields: [createUserId], references: [id], onDelete: Cascade)
+  postLikes    postLike[]
+  postViews    postView[]
+
+  @@index([createUserId], map: "post_create_user_id_fkey")
+}
+
+model postLike {
+  id         Int       @id @default(autoincrement())
+  post_id    Int
+  user_id    Int
+  liked      Boolean?
+  createTime DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime DateTime? @default(now()) @map("update_time") @db.DateTime(0)
+  post       post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([post_id], map: "post_like_post_id_fkey")
+  @@index([user_id], map: "post_like_user_id_fkey")
+  @@map("post_like")
+}
+
+model postView {
+  id         Int      @id @default(autoincrement())
+  post_id    Int
+  user_id    Int
+  createTime DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  post       post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([post_id], map: "post_view_post_id_fkey")
+  @@index([user_id], map: "post_view_user_id_fkey")
+  @@map("post_view")
+}
+
+model user {
+  id           Int        @id @default(autoincrement())
+  followingNum Int        @default(0) @map("following_num")
+  followerNum  Int        @default(0) @map("follower_num")
+  userName     String     @map("user_name") @db.VarChar(255)
+  password     String     @db.VarChar(255)
+  fullName     String     @default("") @map("full_name") @db.VarChar(255)
+  avatar       String     @default("") @db.VarChar(255)
+  post         post[]
+  postLikes    postLike[]
+  postViews    postView[]
+}

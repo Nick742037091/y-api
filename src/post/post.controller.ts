@@ -32,7 +32,7 @@ export class PostController {
     @Query('pageNum') pageNum: number,
     @Request() req,
   ) {
-    return this.postService.findAll(pageSize || 10, pageNum || 1, req.userId);
+    return this.postService.findAll(+pageSize || 10, +pageNum || 1, req.userId);
   }
 
   @UseGuards(AuthGuard)

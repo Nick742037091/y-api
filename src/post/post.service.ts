@@ -1,41 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Post } from './entities/post.entity';
-import { Repository } from 'typeorm';
 import { fail, success } from 'src/utils';
-import { PostLike } from './entities/postLike.entity';
-import { PostView } from './entities/postView.entity';
+import { PrismaService } from 'src/utils/db/prisma/prisma.service';
 
 @Injectable()
 export class PostService {
-  constructor(
-    @InjectRepository(Post)
-    private postRepository: Repository<Post>,
+  @Inject(PrismaService)
+  private prisma: PrismaService;
 
-    @InjectRepository(PostLike)
-    private postLikeRepository: Repository<PostLike>,
-
-    @InjectRepository(PostView)
-    private postViewRepository: Repository<PostView>,
-  ) {}
+  constructor() {}
 
   async create(createPostDto: CreatePostDto, userId: number) {
-    const result = await this.postRepository.save({
-      ...createPostDto,
-      createUserId: userId,
-      imgList: createPostDto.imgList ? createPostDto.imgList.join(',') : null,
+    const result = await this.prisma.post.create({
+      data: {
+        createUserId: userId,
+        ...createPostDto,
+        imgList: createPostDto.imgList ? createPostDto.imgList.join(',') : '',
+      },
     });
-    return await this.postRepository.find({ where: { id: result.id } });
+    return result;
   }
 
   async findAll(pageSize: number, pageNum: number, userId: number) {
-    const total = await this.postRepository.count();
-    const posts = await this.postRepository.find({
+    const total = await this.prisma.post.count();
+    const posts = await this.prisma.post.findMany({
       take: pageSize,
       skip: pageSize * (pageNum - 1),
-      relations: {
+      include: {
         user: true,
         postLikes: true,
         postViews: true,
@@ -44,7 +36,7 @@ export class PostService {
     const list = posts.map((item) => {
       const { user, postLikes, postViews, ...rest } = item;
       const likedList = postLikes.filter((item) => item.liked);
-      const isLiked = !!likedList.find((item) => item.userId === userId);
+      const isLiked = !!likedList.find((item) => item.user_id === userId);
       return {
         ...rest,
         imgList: item.imgList ? item.imgList.split(',') : [],
@@ -65,13 +57,13 @@ export class PostService {
   }
 
   async findOne(id: number, userId: number) {
-    const post = await this.postRepository.findOne({
+    const post = await this.prisma.post.findUnique({
       where: { id },
-      relations: { user: true, postLikes: true, postViews: true },
+      include: { user: true, postLikes: true, postViews: true },
     });
     const { user, postLikes, postViews, imgList, ...rest } = post;
     const likedList = postLikes.filter((item) => item.liked);
-    const isLiked = !!likedList.find((item) => item.userId === userId);
+    const isLiked = !!likedList.find((item) => item.user_id === userId);
     return {
       ...rest,
       imgList: imgList ? imgList.split(',') : [],
@@ -87,45 +79,66 @@ export class PostService {
   }
 
   async update(id: number, updatePostDto: UpdatePostDto) {
-    await this.postRepository.update(id, {
-      ...updatePostDto,
-      imgList: (updatePostDto.imgList || []).join(','),
+    const findItem = await this.prisma.post.findUnique({ where: { id } });
+    if (!findItem) {
+      return fail({ msg: '帖子不存在' });
+    }
+    await this.prisma.post.update({
+      where: { id },
+      data: {
+        ...updatePostDto,
+        imgList: (updatePostDto.imgList || []).join(','),
+      },
     });
     return success();
   }
 
   async remove(id: number) {
-    const findItem = await this.postRepository.findOne({ where: { id } });
+    const findItem = await this.prisma.post.findUnique({ where: { id } });
     if (!findItem) {
       return fail({ msg: '帖子不存在' });
     }
-    await this.postRepository.delete(id);
+    await this.prisma.post.delete({ where: { id } });
   }
 
   async like(postId: number, userId: number, status: boolean = true) {
-    const record = await this.postLikeRepository.findOne({
+    const findPost = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!findPost) {
+      return fail({ msg: '帖子不存在' });
+    }
+    const record = await this.prisma.postLike.findFirst({
       where: {
-        postId,
-        userId,
+        post_id: postId,
+        user_id: userId,
       },
     });
     if (record) {
-      record.liked = status;
-      await this.postLikeRepository.save(record);
+      await this.prisma.postLike.update({
+        where: { id: record.id },
+        data: { liked: status },
+      });
     } else {
-      await this.postLikeRepository.save({
-        postId,
-        userId,
-        liked: status,
+      await this.prisma.postLike.create({
+        data: {
+          post_id: postId,
+          user_id: userId,
+          liked: status,
+        },
       });
     }
     return success();
   }
 
   async view(postId: number, userId: number) {
-    await this.postViewRepository.save({
-      postId,
-      userId,
+    const findPost = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!findPost) {
+      return fail({ msg: '帖子不存在' });
+    }
+    await this.prisma.postView.create({
+      data: {
+        post_id: postId,
+        user_id: userId,
+      },
     });
     return success();
   }
