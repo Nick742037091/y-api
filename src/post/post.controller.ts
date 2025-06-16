@@ -9,6 +9,8 @@ import {
   UseGuards,
   Request,
   Query,
+  ParseIntPipe,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -28,8 +30,8 @@ export class PostController {
   @UseGuards(AuthGuard)
   @Get('list')
   findAll(
-    @Query('pageSize') pageSize: number,
-    @Query('pageNum') pageNum: number,
+    @Query('pageSize', ParseIntPipe) pageSize: number,
+    @Query('pageNum', ParseIntPipe) pageNum: number,
     @Request() req,
   ) {
     return this.postService.findAll(+pageSize || 10, +pageNum || 1, req.userId);
@@ -44,27 +46,27 @@ export class PostController {
   // 接口从上到下进行匹配，因此要放在list接口下面，否则会覆盖list接口
   @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.postService.findOne(+id, req.userId);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.postService.findOne(id, req.userId);
   }
 
   @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updatePostDto: UpdatePostDto) {
+    return this.postService.update(id, updatePostDto);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.postService.remove(id);
   }
 
   @UseGuards(AuthGuard)
   @Post('like')
   like(
-    @Body('postId') postId: number,
-    @Body('status') status: boolean,
+    @Body('postId', ParseIntPipe) postId: number,
+    @Body('status', ParseBoolPipe) status: boolean,
     @Request() req,
   ) {
     return this.postService.like(postId, req.userId, status);
@@ -72,7 +74,7 @@ export class PostController {
 
   @UseGuards(AuthGuard)
   @Post('view')
-  view(@Body('postId') postId: number, @Request() req) {
+  view(@Body('postId', ParseIntPipe) postId: number, @Request() req) {
     return this.postService.view(postId, req.userId);
   }
 }

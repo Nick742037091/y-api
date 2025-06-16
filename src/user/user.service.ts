@@ -72,14 +72,7 @@ export class UserService {
     return this.prisma.user.findFirst({
       where: {
         userName: name,
-      },
-      select: {
-        id: true,
-        userName: true,
-        fullName: true,
-        password: true,
-        avatar: true,
-      },
+      }
     });
   }
 
