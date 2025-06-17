@@ -57,12 +57,15 @@ model postView {
 
 model user {
   id           Int        @id @default(autoincrement())
+  createTime   DateTime   @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime   DateTime   @default(now()) @updatedAt @map("update_time") @db.DateTime(0)
   followingNum Int        @default(0) @map("following_num")
   followerNum  Int        @default(0) @map("follower_num")
   userName     String     @map("user_name") @db.VarChar(255)
   password     String     @db.VarChar(255)
   fullName     String     @default("") @map("full_name") @db.VarChar(255)
   avatar       String     @default("") @db.VarChar(255)
+  description  String?     @db.Text
   post         post[]
   postLikes    postLike[]
   postViews    postView[]
