@@ -65,7 +65,8 @@ model user {
   password     String     @db.VarChar(255)
   fullName     String     @default("") @map("full_name") @db.VarChar(255)
   avatar       String     @default("") @db.VarChar(255)
-  description  String?     @db.Text
+  description  String?    @db.Text
+  profileBanner String? @db.VarChar(500) @map("profile_banner")
   post         post[]
   postLikes    postLike[]
   postViews    postView[]
