@@ -58,7 +58,18 @@ export class AuthService {
       secret: jwtConstants.secret,
     });
     const user = await this.usersService.findOne(payload.sub);
-    const { password: pwd, ...rest } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...rest } = user;
     return rest;
+  }
+
+  async getProfileData(token: string) {
+    const payload = await this.jwtService.verifyAsync(token, {
+      secret: jwtConstants.secret,
+    });
+    const postNum = await this.usersService.findPostNum(payload.sub);
+    return {
+      postNum,
+    };
   }
 }

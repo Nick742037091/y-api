@@ -10,7 +10,7 @@ import { PrismaService } from 'src/utils/db/prisma/prisma.service';
 export class UserService {
   @Inject(PrismaService)
   private prisma: PrismaService;
-  
+
   constructor(
     // 解决与AuthService的循环依赖问题
     @Inject(forwardRef(() => AuthService))
@@ -64,7 +64,7 @@ export class UserService {
     return this.prisma.user.findFirst({
       where: {
         id,
-      }
+      },
     });
   }
 
@@ -72,7 +72,17 @@ export class UserService {
     return this.prisma.user.findFirst({
       where: {
         userName: name,
-      }
+      },
+    });
+  }
+
+  findPostNum(userId: number) {
+    return this.prisma.post.count({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
     });
   }
 

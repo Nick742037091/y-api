@@ -34,4 +34,12 @@ export class AuthController {
       AuthGuard.extractTokenFromHeader(headers.authorization),
     );
   }
+
+  @UseGuards(AuthGuard)
+  @Get('getProfileData')
+  getProfileData(@Headers() headers) {
+    return this.authService.getProfileData(
+      AuthGuard.extractTokenFromHeader(headers.authorization),
+    );
+  }
 }
