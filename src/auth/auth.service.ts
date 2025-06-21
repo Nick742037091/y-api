@@ -44,32 +44,45 @@ export class AuthService {
     return token;
   }
 
-  async logout(token: string) {
+  async getLoginUserId(token: string) {
     const payload = await this.jwtService.verifyAsync(token, {
       secret: jwtConstants.secret,
     });
+    return payload.sub;
+  }
+
+  async logout(token: string) {
+    const userId = await this.getLoginUserId(token);
     // 设置有效时长为1使清除
-    await this.redisService.set(`token_${payload.sub}`, '', 1);
+    await this.redisService.set(`token_${userId}`, '', 1);
     return null;
   }
 
   async getUserInfo(token: string) {
-    const payload = await this.jwtService.verifyAsync(token, {
-      secret: jwtConstants.secret,
-    });
-    const user = await this.usersService.findOne(payload.sub);
+    const userId = await this.getLoginUserId(token);
+    const user = await this.usersService.findOne(userId);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...rest } = user;
     return rest;
   }
 
   async getProfileData(token: string) {
-    const payload = await this.jwtService.verifyAsync(token, {
-      secret: jwtConstants.secret,
-    });
-    const postNum = await this.usersService.findPostNum(payload.sub);
+    const userId = await this.getLoginUserId(token);
+    const postNum = await this.usersService.findPostNum(userId);
     return {
       postNum,
     };
+  }
+
+  async updateProfile(
+    token: string,
+    data: {
+      userName: string;
+      description: string;
+    },
+  ) {
+    const userId = await this.getLoginUserId(token);
+    await this.usersService.update(userId, data);
+    return null;
   }
 }

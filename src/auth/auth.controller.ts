@@ -42,4 +42,16 @@ export class AuthController {
       AuthGuard.extractTokenFromHeader(headers.authorization),
     );
   }
+
+  @UseGuards(AuthGuard)
+  @Post('updateProfile')
+  updateProfile(
+    @Headers() headers,
+    @Body() data: { userName: string; description: string },
+  ) {
+    return this.authService.updateProfile(
+      AuthGuard.extractTokenFromHeader(headers.authorization),
+      data,
+    );
+  }
 }
