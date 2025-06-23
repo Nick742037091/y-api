@@ -4,6 +4,8 @@ import {
   UseInterceptors,
   UploadedFile,
   Body,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import { UploadService } from './upload.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { diskStorage } from 'multer';
 import { nanoid } from 'nanoid';
 import { existsSync, mkdirSync } from 'fs';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 /**
  * 获取文件后缀
@@ -63,5 +66,11 @@ export class UploadController {
     let path = formData.path;
     path = path ? `${path}/` : '';
     return this.configService.get('UPLOAD_PATH') + path + file.filename;
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('qcloudCredential')
+  qcloudCredential() {
+    return this.uploadService.qcloudCredential();
   }
 }

@@ -52,7 +52,10 @@ export class PostController {
 
   @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updatePostDto: UpdatePostDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePostDto: UpdatePostDto,
+  ) {
     return this.postService.update(id, updatePostDto);
   }
 
