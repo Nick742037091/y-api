@@ -32,6 +32,9 @@ export class PostService {
         postLikes: true,
         postViews: true,
       },
+      orderBy: {
+        createTime: 'desc',
+      },
     });
     const list = posts.map((item) => {
       const { user, postLikes, postViews, ...rest } = item;
@@ -102,7 +105,9 @@ export class PostService {
   }
 
   async like(postId: number, userId: number, status: boolean = true) {
-    const findPost = await this.prisma.post.findUnique({ where: { id: postId } });
+    const findPost = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
     if (!findPost) {
       return fail({ msg: '帖子不存在' });
     }
@@ -130,7 +135,9 @@ export class PostService {
   }
 
   async view(postId: number, userId: number) {
-    const findPost = await this.prisma.post.findUnique({ where: { id: postId } });
+    const findPost = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
     if (!findPost) {
       return fail({ msg: '帖子不存在' });
     }
