@@ -17,10 +17,12 @@ export class HttpExecptionFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
-    const message = exception.message || exception || '';
+    const res = exception.getResponse() as { message: string[] };
+
     response.status(status).json({
       code: status,
-      msg: message,
+      // 异常信息转为中文
+      msg: res?.message?.join ? res?.message?.join(',') : exception.message,
       data: null,
     });
   }

@@ -31,13 +31,14 @@ export class PostService {
         user: true,
         postLikes: true,
         postViews: true,
+        postComments: true,
       },
       orderBy: {
         createTime: 'desc',
       },
     });
     const list = posts.map((item) => {
-      const { user, postLikes, postViews, ...rest } = item;
+      const { user, postLikes, postViews, postComments, ...rest } = item;
       const likedList = postLikes.filter((item) => item.liked);
       const isLiked = !!likedList.find((item) => item.user_id === userId);
       return {
@@ -47,7 +48,7 @@ export class PostService {
         fullName: user.fullName,
         avatar: user.avatar,
         isLiked,
-        commentNum: 0,
+        commentNum: postComments.filter((item) => !item.parentId).length,
         shareNum: 0,
         likeNum: likedList.length,
         viewNum: postViews.length,
@@ -62,19 +63,48 @@ export class PostService {
   async findOne(id: number, userId: number) {
     const post = await this.prisma.post.findUnique({
       where: { id },
-      include: { user: true, postLikes: true, postViews: true },
+      include: {
+        user: true,
+        postLikes: true,
+        postViews: true,
+        postComments: {
+          where: {
+            parentId: null,
+          },
+          select: {
+            id: true,
+            content: true,
+            imgList: true,
+            createTime: true,
+            user: {
+              select: {
+                id: true,
+                userName: true,
+                fullName: true,
+                avatar: true,
+              },
+            },
+            children: true,
+          },
+        },
+      },
     });
-    const { user, postLikes, postViews, imgList, ...rest } = post;
+    const { postLikes, postViews, postComments, imgList, ...rest } = post;
     const likedList = postLikes.filter((item) => item.liked);
     const isLiked = !!likedList.find((item) => item.user_id === userId);
     return {
       ...rest,
       imgList: imgList ? imgList.split(',') : [],
-      userName: user.userName,
-      fullName: user.fullName,
-      avatar: user.avatar,
+      // userName: user.userName,
+      // fullName: user.fullName,
+      // avatar: user.avatar,
       isLiked,
-      commentNum: 0,
+      postComments: postComments.map((item) => {
+        return {
+          ...item,
+          imgList: item.imgList ? item.imgList.split(',') : [],
+        };
+      }),
       shareNum: 0,
       likeNum: likedList.length,
       viewNum: postViews.length,
