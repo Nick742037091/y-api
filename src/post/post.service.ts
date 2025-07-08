@@ -23,32 +23,48 @@ export class PostService {
   }
 
   async findAll(pageSize: number, pageNum: number, userId: number) {
+    const userSelect = {
+      select: {
+        id: true,
+        userName: true,
+        fullName: true,
+        avatar: true,
+      },
+    };
     const total = await this.prisma.post.count();
     const posts = await this.prisma.post.findMany({
       take: pageSize,
       skip: pageSize * (pageNum - 1),
-      include: {
-        user: true,
+      select: {
+        id: true,
+        content: true,
+        imgList: true,
+        createTime: true,
+        user: userSelect,
         postLikes: true,
         postViews: true,
-        postComments: true,
+        postComments: {
+          where: {
+            parentId: null,
+          },
+          select: {
+            id: true,
+          },
+        },
       },
       orderBy: {
         createTime: 'desc',
       },
     });
     const list = posts.map((item) => {
-      const { user, postLikes, postViews, postComments, ...rest } = item;
+      const { postLikes, postViews, postComments, ...rest } = item;
       const likedList = postLikes.filter((item) => item.liked);
       const isLiked = !!likedList.find((item) => item.user_id === userId);
       return {
         ...rest,
         imgList: item.imgList ? item.imgList.split(',') : [],
-        userName: user.userName,
-        fullName: user.fullName,
-        avatar: user.avatar,
         isLiked,
-        commentNum: postComments.filter((item) => !item.parentId).length,
+        commentNum: postComments.length,
         shareNum: 0,
         likeNum: likedList.length,
         viewNum: postViews.length,
@@ -61,10 +77,22 @@ export class PostService {
   }
 
   async findOne(id: number, userId: number) {
+    const userSelect = {
+      select: {
+        id: true,
+        userName: true,
+        fullName: true,
+        avatar: true,
+      },
+    };
     const post = await this.prisma.post.findUnique({
       where: { id },
-      include: {
-        user: true,
+      select: {
+        id: true,
+        content: true,
+        imgList: true,
+        createTime: true,
+        user: userSelect,
         postLikes: true,
         postViews: true,
         postComments: {
@@ -74,17 +102,24 @@ export class PostService {
           select: {
             id: true,
             content: true,
-            imgList: true,
             createTime: true,
-            user: {
+            user: userSelect,
+            imgList: true,
+            children: {
               select: {
                 id: true,
-                userName: true,
-                fullName: true,
-                avatar: true,
+                content: true,
+                imgList: true,
+                createTime: true,
+                user: userSelect,
+                replyTo: {
+                  select: {
+                    id: true,
+                    user: userSelect,
+                  },
+                },
               },
             },
-            children: true,
           },
         },
       },
@@ -95,16 +130,20 @@ export class PostService {
     return {
       ...rest,
       imgList: imgList ? imgList.split(',') : [],
-      // userName: user.userName,
-      // fullName: user.fullName,
-      // avatar: user.avatar,
       isLiked,
       postComments: postComments.map((item) => {
         return {
           ...item,
           imgList: item.imgList ? item.imgList.split(',') : [],
+          children: item.children.map((child) => {
+            return {
+              ...child,
+              imgList: child.imgList ? child.imgList.split(',') : [],
+            };
+          }),
         };
       }),
+      commentNum: postComments.length,
       shareNum: 0,
       likeNum: likedList.length,
       viewNum: postViews.length,
