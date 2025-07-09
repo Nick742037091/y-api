@@ -20,6 +20,7 @@ model post {
   gifPoster    String?       @map("gif_poster") @db.VarChar(500)
   gifWidth     Int?          @default(0) @map("gif_width") @db.SmallInt
   gifHeight    Int?          @default(0) @map("gif_height") @db.SmallInt
+  // 帖子创建者删除时，关联删除帖子
   user         user          @relation(fields: [createUserId], references: [id], onDelete: Cascade)
   postLikes    postLike[]
   postViews    postView[]
@@ -64,13 +65,16 @@ model postComment {
   imgList    String?   @map("img_list") @db.Text
   createTime DateTime  @default(now()) @map("create_time") @db.DateTime(0)
   updateTime DateTime? @default(now()) @updatedAt @map("update_time") @db.DateTime(0)
+  // 帖子删除时，关联删除帖子评论
   post       post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  // 用户删除时，关联删除帖子评论
   user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   parentId   Int?      @map("parent_id")
   parent     postComment? @relation("CommentToChildren", fields: [parentId], references: [id])
   children   postComment[] @relation("CommentToChildren")
   replyToId  Int?      @map("reply_to_id")
+  // 指向的评论删除时，关联删除回复的评论
   replyTo    postComment? @relation("CommentToReply", fields: [replyToId], references: [id], onDelete: Cascade)
   replyFrom  postComment[] @relation("CommentToReply")
 
