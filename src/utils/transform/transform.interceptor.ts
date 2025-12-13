@@ -13,13 +13,14 @@ export class TransformInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((result: any) => {
         if (result && (result.code || result.msg)) {
-          // 存在code和msg的返回值，是异常返回
+          // result是对象，且存在code和msg的属性，返回结果需要从返回值提取code、data、msg属性
           return {
             code: 0 || result.code,
             data: result.data || null,
             msg: result.msg || '',
           };
         } else {
+          // 其他情况，将result作为返回结果的data属性返回
           return {
             code: 0,
             data: result,

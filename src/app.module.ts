@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './utils/db/redis/redis.module';
@@ -11,6 +11,7 @@ import { GroupModule } from './group/group.module';
 import { NotificationModule } from './notification/notification.module';
 import envConfig from './utils/config/envConfig';
 import { PostCommentModule } from './post-comment/post-comment.module';
+import { LoggerMiddleware } from './utils/middleware/logger.middleware';
 
 @Module({
   imports: [
@@ -32,6 +33,9 @@ import { PostCommentModule } from './post-comment/post-comment.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {
+export class AppModule implements NestModule {
   constructor() {}
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
 }
