@@ -4,19 +4,19 @@ import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 export class CreatePostCommentDto {
   // 第一级评论id，用于批量展示
   @IsOptional()
-  @IsInt()
+  @IsInt({ message: '父级评论id必须为整数' })
   parentId?: number;
 
   // 回复的评论id
   @IsOptional()
-  @IsInt()
+  @IsInt({ message: '回复的评论id必须为整数' })
   replyToId?: number;
 
-  @IsNotEmpty()
-  @IsInt()
+  @IsNotEmpty({ message: '帖子id不能为空' })
+  @IsInt({ message: '帖子id必须为整数' })
   postId: number;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '评论内容不能为空' })
   content: string;
 
   @IsOptional()

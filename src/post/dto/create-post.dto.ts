@@ -2,7 +2,7 @@ import { IsNotEmpty } from 'class-validator';
 
 // 需要校验非空值
 export class CreatePostDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '帖子内容不能为空' })
   content: string;
 
   imgList: string[];

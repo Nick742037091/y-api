@@ -15,7 +15,7 @@ export class TransformInterceptor implements NestInterceptor {
         if (result && (result.code || result.msg)) {
           // result是对象，且存在code和msg的属性，返回结果需要从返回值提取code、data、msg属性
           return {
-            code: 0 || result.code,
+            code: result.code || 0,
             data: result.data || null,
             msg: result.msg || '',
           };

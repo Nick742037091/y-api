@@ -9,7 +9,6 @@ import {
   Request,
   Query,
   ParseIntPipe,
-  ValidationPipe,
 } from '@nestjs/common';
 import { PostCommentService } from './post-comment.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
@@ -21,10 +20,7 @@ export class PostCommentController {
 
   @UseGuards(AuthGuard)
   @Post()
-  create(
-    @Body(new ValidationPipe()) createPostCommentDto: CreatePostCommentDto,
-    @Request() req,
-  ) {
+  create(@Body() createPostCommentDto: CreatePostCommentDto, @Request() req) {
     return this.postCommentService.create(createPostCommentDto, req.userId);
   }
 
