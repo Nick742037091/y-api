@@ -11,7 +11,7 @@ import { Response } from 'express';
 @Catch()
 export class HttpExecptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
-    console.log('http error', exception);
+    // console.log('http error', exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     if (!(exception instanceof HttpException)) {
