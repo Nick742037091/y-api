@@ -13,11 +13,13 @@ Y-API 是一个基于 NestJS 框架构建的社交媒体后端 API 服务，提�
 - **缓存**: Redis
 - **认证**: JWT
 - **文件存储**: 腾讯云 COS
+- **数据验证**: class-validator
 - **其他依赖**:
   - bcrypt: 密码加密
-  - class-validator: 数据验证
   - class-transformer: 数据转换
   - nanoid: ID 生成
+  - cache-manager: 缓存管理
+  - qcloud-cos-sts: 腾讯云临时凭证
 
 ## 项目结构
 
@@ -28,19 +30,15 @@ y-api/
 │   ├── main.ts             # 应用入口文件
 │   ├── auth/               # 认证模块
 │   │   ├── auth.controller.ts
+│   │   ├── auth.guard.ts   # 认证守卫
 │   │   ├── auth.module.ts
 │   │   ├── auth.service.ts
 │   │   ├── constants.ts
-│   │   ├── dto/            # 数据传输对象
-│   │   └── entities/       # 实体定义
+│   │   └── dto/            # 数据传输对象
 │   ├── group/              # 群组模块
-│   │   ├── dto/
-│   │   ├── entities/
 │   │   ├── group.controller.ts
 │   │   └── group.module.ts
 │   ├── notification/       # 通知模块
-│   │   ├── dto/
-│   │   ├── entities/
 │   │   ├── notification.controller.ts
 │   │   └── notification.module.ts
 │   ├── post/               # 帖子模块
@@ -54,8 +52,6 @@ y-api/
 │   │   ├── post-comment.module.ts
 │   │   └── post-comment.service.ts
 │   ├── tending/            # 热门趋势模块
-│   │   ├── dto/
-│   │   ├── entities/
 │   │   ├── trending.controller.ts
 │   │   └── trending.module.ts
 │   ├── upload/             # 文件上传模块
@@ -73,17 +69,20 @@ y-api/
 │       │   ├── prisma/     # Prisma ORM
 │       │   └── redis/      # Redis 缓存
 │       ├── execption/      # 异常处理
-│       ├── index.ts
-│       └── transform/      # 数据转换
+│       ├── interceptors/   # 拦截器
+│       │   ├── logging.interceptor.ts
+│       │   └── transform.interceptor.ts
+│       └── index.ts
 ├── prisma/                 # Prisma 配置
 │   ├── migrations/         # 数据库迁移文件
 │   └── schema.prisma       # 数据库模型定义
-├── public/                 # 静态资源
 ├── test/                   # 测试文件
 ├── .eslintrc.js            # ESLint 配置
+├── .gitignore              # Git 忽略文件
 ├── .prettierrc             # Prettier 配置
 ├── nest-cli.json           # Nest CLI 配置
 ├── package.json            # 项目依赖和脚本
+├── pnpm-lock.yaml          # PNPM 锁定文件
 ├── pm2.config.js           # PM2 配置
 ├── tsconfig.build.json     # TypeScript 构建配置
 └── tsconfig.json           # TypeScript 配置
@@ -96,6 +95,7 @@ y-api/
 负责用户认证和授权功能，使用 JWT 进行身份验证。
 
 - **控制器**: `AuthController`
+- **守卫**: `AuthGuard`
 - **服务**: `AuthService`
 - **功能**: 用户登录、注册、令牌验证
 - **依赖**: UserModule, JwtModule
@@ -202,8 +202,9 @@ y-api/
 - **PrismaModule**: 全局 Prisma 服务模块，提供数据库连接和操作
 - **RedisModule**: 全局 Redis 服务模块，提供缓存功能
 
-### 2. 数据转换
+### 2. 拦截器
 
+- **LoggingInterceptor**: 全局拦截器，记录请求和响应日志
 - **TransformInterceptor**: 全局拦截器，统一处理 API 响应格式
 
 ### 3. 异常处理
@@ -214,6 +215,10 @@ y-api/
 
 - **envConfig**: 环境变量配置管理
 - **ConfigModule**: NestJS 配置模块，全局可用
+
+### 5. 数据验证
+
+- **ValidationPipe**: 全局管道，使用 class-validator 进行数据验证
 
 ## API 设计规范
 
@@ -283,6 +288,29 @@ pnpm run prisma:prod
 
 # 生成 Prisma 客户端
 pnpm run prisma:generate
+```
+
+### 代码检查与格式化
+
+```bash
+# 运行 ESLint 检查并自动修复
+pnpm run lint
+
+# 格式化代码
+pnpm run format
+```
+
+### 测试
+
+```bash
+# 运行单元测试
+pnpm run test
+
+# 运行测试并生成覆盖率报告
+pnpm run test:cov
+
+# 运行端到端测试
+pnpm run test:e2e
 ```
 
 ## 项目特点
@@ -362,6 +390,86 @@ request.userName = payload.username;
 
 这种设计提供了灵活的令牌管理机制，同时保证了系统的安全性。
 
+### 项目特点
+
+1. **模块化设计**: 采用 NestJS 的模块化架构，各功能模块独立，便于维护和扩展
+2. **统一响应格式**: 使用拦截器统一处理 API 响应格式
+3. **全局异常处理**: 使用过滤器统一处理异常
+4. **数据验证**: 使用 DTO 和 class-validator 进行数据验证和转换
+5. **缓存策略**: 使用 Redis 缓存提高性能
+6. **ORM 集成**: 使用 Prisma 简化数据库操作
+7. **类型安全**: 全面使用 TypeScript 提供类型安全
+8. **日志记录**: 使用拦截器记录请求和响应日志
+9. **数据验证**: 使用 class-validator 进行全面的数据验证
+
+## 扩展指南
+
+1. **添加新模块**: 使用 Nest CLI 生成模块、控制器和服务
+2. **添加新 API**: 在相应模块的控制器中添加新路由
+3. **数据库变更**: 修改 Prisma schema 并生成迁移文件
+4. **添加新依赖**: 使用 pnpm 安装并更新 package.json
+
+## 注意事项
+
+1. 确保环境变量配置正确
+2. 数据库迁移前备份数据
+3. 生产环境部署前进行充分测试
+4. 定期更新依赖包以修复安全漏洞
+5. 使用 pnpm 作为包管理器，确保依赖一致性
+
+## 授权验证流程
+
+本系统使用 JWT (JSON Web Token) 进行用户身份验证，并结合 Redis 实现令牌管理和验证。以下是详细的授权验证流程：
+
+### 1. 令牌获取与存储
+
+- 用户登录成功后，系统生成 JWT 令牌并返回给客户端
+- 同时，系统将令牌存储在 Redis 中，键格式为 `token_${userId}`
+- 客户端需要在后续请求的 Header 中携带该令牌，格式为 `Authorization: Bearer <token>`
+
+### 2. 请求拦截与验证
+
+所有需要授权的接口都会通过 `AuthGuard` 进行验证：
+
+1. **令牌提取**: 从请求头的 `Authorization` 字段中提取 Bearer 令牌
+2. **令牌验证**: 使用 JWT 密钥验证令牌的有效性和签名
+3. **缓存验证**: 从 Redis 中获取缓存的令牌，确保令牌未被撤销
+4. **令牌比对**: 比对请求令牌与缓存令牌，确保一致性
+
+### 3. 用户信息注入
+
+验证通过后，系统会将用户信息注入到请求对象中：
+
+```typescript
+request.user = {
+  userId: payload.sub,
+  userName: payload.username,
+};
+request.userId = payload.sub;
+request.userName = payload.username;
+```
+
+这样，在后续的业务逻辑中可以直接通过 `request.userId` 和 `request.userName` 获取当前用户信息。
+
+### 4. 异常处理
+
+在验证过程中的任何环节失败，都会抛出 `UnauthorizedException` 异常：
+
+- 缺少令牌：返回 "缺少token"
+- 令牌验证失败：返回 "token校验失败"
+- 缓存中无令牌：返回 "token校验失败"
+- 令牌不匹配：返回 "token校验失败"
+
+### 5. 令牌撤销
+
+系统可以通过删除 Redis 中的令牌来实现令牌撤销，例如：
+
+- 用户主动退出登录
+- 管理员强制用户下线
+- 检测到异常活动时
+
+这种设计提供了灵活的令牌管理机制，同时保证了系统的安全性。
+
 ## TODO
 
-1. 使用zod做数据验证，并支持中文提示
+1. 优化数据验证，支持中文提示

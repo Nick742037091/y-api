@@ -42,8 +42,7 @@
     "qcloud-cos-sts": "^3.1.3",
     "redis": "^4.6.12",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1",
-    "zod": "^3.25.67"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
